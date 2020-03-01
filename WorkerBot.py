@@ -11,8 +11,9 @@ from Bot import Bot
 
 
 class WorkerBot(Bot):
-    def __init__(self, browser, character_name):
+    def __init__(self, browser, character_name, lowerbound_attack=1000):
         super(WorkerBot, self).__init__(browser, character_name)
+        self.lowerBoundOfAttack = lowerbound_attack
         self.arena_site = 'https://g.arenamody.pl/duels.php'
         self.jobs_site = 'https://g.arenamody.pl/jobs.php'
 
@@ -76,16 +77,18 @@ class WorkerBot(Bot):
             self.retry_click(By.ID, self.ids['challenge'])
             self.browser.refresh()
             succeed = False
-            for attempt in range(1000):
+            for attempt in range(5):
                 money_after = self.update_money(ret=True)
                 if money_after == money_before:
                     self.browser.refresh()
                 else:
                     succeed = True
                     break
-            if not succeed:
-                raise Exception('Couldn\'t properly update money after fight')
-            money_change = money_after - money_before
-            print(money_after, money_before, money_change)
-            self.enemy_list[enemy_id] = (money_change-1000, time())
-            self.save_enemy_list()
+            if succeed:
+                money_change = money_after - money_before
+                print(money_after, money_before, money_change)
+                self.enemy_list[enemy_id] = (money_change - self.lowerBoundOfAttack, time())
+                self.save_enemy_list()
+            else:
+                print('Enemy has been attacked or i have attacked him 5 times')
+                self.enemy_list[enemy_id] = (self.enemy_list[enemy_id][0], 86400 + time())

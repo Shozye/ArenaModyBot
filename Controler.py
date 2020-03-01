@@ -5,7 +5,8 @@ import logging
 
 
 class Controler:
-    def __init__(self, user, password, driver_path, level, character_name):
+    def __init__(self, user, password, driver_path, level, character_name, lowerbound_attack = None):
+        self.lowerBoundOfAttack = lowerbound_attack
         self.DRIVER_PATH = driver_path
         self.PASS = password
         self.USER = user
@@ -28,7 +29,7 @@ class Controler:
 
     def gather_emerald_and_fight(self):
         browser = webdriver.Chrome(self.DRIVER_PATH)
-        bot = WorkerBot(browser, self.character_name)
+        bot = WorkerBot(browser, self.character_name, lowerbound_attack=self.lowerBoundOfAttack)
         bot.start_bot()
         bot.login(self.USER, self.PASS)
         logging.info('Bot has logged properly')
