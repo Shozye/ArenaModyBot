@@ -8,9 +8,13 @@ import selenium
 import logging
 from selectors import init_selectors
 from Bot import Bot
+from time import sleep
 
 
 class WorkerBot(Bot):
+    """
+    This class should be used to play: gather emeralds and fight in a long run
+    """
     def __init__(self, browser, character_name, lowerbound_attack=1000):
         super(WorkerBot, self).__init__(browser, character_name)
         self.lowerBoundOfAttack = lowerbound_attack
@@ -18,6 +22,14 @@ class WorkerBot(Bot):
         self.jobs_site = 'https://g.arenamody.pl/jobs.php'
 
     def make_emerald_action(self, hard=False):
+        """
+        It is unit emerald action.
+        It will
+        - click to start photoSession
+        - click to stop photoSession (and gather emerald)
+        - if hard == True if will wait till end of photoSession
+        :param hard: if param == hard, then Bot will wait when the PhotoSession is making
+        """
         if self.browser.current_url != self.jobs_site:
             self.browser.get(self.jobs_site)
             logging.info('Changing site to jobs')
@@ -58,14 +70,24 @@ class WorkerBot(Bot):
             raise Exception('Bot should be on jobs site, but perhaps he isn\'t')
 
     def attack_choose(self):
+        """
+        :return: return id of enemy to attack in string
+        """
         enemies = list(self.enemy_list.items())
         enemies.sort(key=lambda x: x[1][0], reverse=True)
         for item in enemies:
             if time() - item[1][1] > 3600:
+                logging.info(json.dumps(item[0]))
                 return item[0]
+
         raise Exception('EnemyList is empty')
 
     def attack(self, enemy_id):
+        """
+        It will attack character with given ID,
+        and then update enemy_list
+        :param enemy_id: id to attack
+        """
         money_before = self.update_money(ret=True)
         self.browser.get(self.profile_start_site + enemy_id)
         if (int(self.browser.find_element_by_class_name(self.classes['enemyLevel']).text.split(' ')[1]) >=
@@ -74,10 +96,14 @@ class WorkerBot(Bot):
             self.save_enemy_list()
         else:
             self.retry_click(By.CSS_SELECTOR, self.selectors['challengeFromProfile'])
+            WebDriverWait(self.browser, 20).until(
+                ec.element_to_be_clickable((By.ID, self.ids['challenge'])))
+            sleep(3)
             self.retry_click(By.ID, self.ids['challenge'])
-            self.browser.refresh()
+
             succeed = False
-            for attempt in range(5):
+            for attempt in range(10):
+                print('refreshed')
                 money_after = self.update_money(ret=True)
                 if money_after == money_before:
                     self.browser.refresh()

@@ -1,4 +1,9 @@
 def init_selectors():
+    """
+    This method in new file is needed to organise other files better
+    custom selectors makes it easier to read
+    :return: dict of dicts with selectors
+    """
     ids = {'login_button': 'login-btn',
            'login_submit': 'loginSubmit',
            'close_diamond_popup': 'closeButPopup',
@@ -39,7 +44,8 @@ def init_selectors():
                  'enemyGenerosity': 'div.generosity>div.value',
                  'enemyDevotion': 'div.devotion>div.value',
                  'enemyLoyalty': 'div.loyalty>div.value',
-                 'challengeFromProfile': 'div>a.buyOutfit.chalange'}
+                 'challengeFromProfile': 'div>a.buyOutfit.chalange',
+                 'cookiesbutton': 'div>a.cc_btn.cc_btn_accept_all'}
     classes = {
         'enemyLevel': 'level',
         'popularityButton': 'fp-button'

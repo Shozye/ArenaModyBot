@@ -12,19 +12,28 @@ from Bot import Bot
 
 
 class FindEnemiesBot(Bot):
-
-    def __init__(self, browser, character_name):
+    """
+    This class should be used to process, change and create good enemy_list
+    """
+    def __init__(self, browser, character_name, level_treshold):
         super(FindEnemiesBot, self).__init__(browser, character_name)
         self.ranking_site = 'https://g.arenamody.pl/ranking.php'
         self.potential_enemies = set()
         self.checked_enemies = self.initialize_checked_enemies()
+        self.level_treshold = level_treshold
 
     def save_checked_enemies(self):
+        """
+        saving checked_enemies to file
+        """
         filename = self.character_name + "_checked_enemies.txt"
         with open(filename, 'w') as file:
             json.dump(self.checked_enemies, file)
 
     def initialize_checked_enemies(self):
+        """
+        loading checked_enemies from file
+        """
         filename = self.character_name + "_checked_enemies.txt"
         if os.path.isfile(filename):
             with open(filename) as file:
@@ -34,6 +43,10 @@ class FindEnemiesBot(Bot):
         return checked_enemies
 
     def gather_potential_enemies_from(self, tab):
+        """
+        the function takes enemies from ranking
+        :param tab: the tab in the ranking, from which I want to gather potential enemies
+        """
         if self.browser.current_url != self.ranking_site:
             self.browser.get(self.ranking_site)
         self.browser.execute_script("getRanking(currentType, '" + tab + "')")
@@ -61,6 +74,10 @@ class FindEnemiesBot(Bot):
         # print(list(self.potential_enemies))
 
     def gather_potential_enemies(self):
+        """
+        this function gathers processes potential enemies to avoid checking the same person twice
+        :return:
+        """
         self.gather_potential_enemies_from('exp')
         self.gather_potential_enemies_from('duels_won')
         self.gather_potential_enemies_from('duels_money_won')
@@ -72,6 +89,11 @@ class FindEnemiesBot(Bot):
             self.potential_enemies.remove(todel)
 
     def check_player(self, player_id):
+        """
+        checks if I have higher stats than enemy
+        :param player_id: string
+        :return: True if I can attack this person and win else False
+        """
         self.browser.get(self.profile_start_site + str(player_id))
         enemy_stats = {
             'level': int(self.browser.find_element_by_class_name(self.classes['enemyLevel']).text.split(' ')[1]),
@@ -85,19 +107,56 @@ class FindEnemiesBot(Bot):
         logging.debug('enemylevel ' + self.browser.find_element_by_class_name(self.classes['enemyLevel']).text)
         logging.debug(self.stats['level'])
         logging.debug(enemy_stats['level'])
-        if (self.stats['level'] > enemy_stats['level'] >= self.stats['level'] - 5 and
+        if (self.stats['level'] > enemy_stats['level'] >= self.stats['level'] - self.level_treshold and
                 self.stats['style'] > enemy_stats['style'] and
                 self.stats['creativity'] > enemy_stats['creativity'] and
                 self.stats['devotion'] > enemy_stats['devotion'] and
                 self.stats['beauty'] > enemy_stats['beauty'] and
-                self.stats['generosity'] > enemy_stats['generosity'] and
-                self.stats['loyalty'] > enemy_stats['loyalty']):
-            self.enemy_list[player_id] = (0, 0)
-            self.save_enemy_list()
+                self.stats['generosity'] > enemy_stats['generosity']):
+            return True
         else:
-            self.checked_enemies.append(player_id)
-            self.save_checked_enemies()
-
+            return False
     def check_potential_players(self):
+        """
+        checks every person from previously gathered list of potential players
+        if the function check_player() returns True
+        if yes, then append this person to enemy_list
+        """
         for enemy_id in self.potential_enemies:
-            self.check_player(enemy_id)
+            if self.check_player(enemy_id):
+                self.enemy_list[enemy_id] = [0,0]
+                self.save_enemy_list()
+            else:
+                self.checked_enemies.append(enemy_id)
+                self.save_checked_enemies()
+
+    def recheck_people_from_enemy_list(self):
+        """
+        This function deletes every enemy with level lower than my_level - level_treshold and
+        bigger than my_level
+        """
+        to_del = []
+        for enemy_id in self.enemy_list:
+            if self.check_player(enemy_id):
+                pass
+            else:
+                to_del.append(enemy_id)
+                self.checked_enemies.append(enemy_id)
+        for _ in to_del:
+            del self.enemy_list[_]
+        self.save_enemy_list()
+        self.save_checked_enemies()
+    def recheck_people_from_checked_list(self):
+        """
+        this function rechecks every character from checked_list if he satisfies the condition
+        my_level > enemy_level > my_level - self.treshold
+        """
+        to_del = []
+        for enemy_id in self.checked_enemies:
+            if self.check_player(enemy_id):
+                to_del.append(enemy_id)
+        for _ in to_del:
+            self.enemy_list[_] = [0, 0]
+            self.checked_enemies.remove(_)
+        self.save_checked_enemies()
+        self.save_enemy_list()
