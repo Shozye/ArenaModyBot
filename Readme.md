@@ -5,7 +5,7 @@ Bot to arenamody.pl which automates boring activities such as
  - **fighting**
  ## How to use
 To use, open **config.py**, type your username, password etc.
-Then uncomment one of the methods below.
+Then uncomment one of the methods below.  
 Note that if you want to use bot to fighting, you need to use **findEnemies()** method first
 ## Overview of methods
 **gather_emeralds()** - Bot will gather emeralds.
