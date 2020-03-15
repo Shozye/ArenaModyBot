@@ -5,7 +5,7 @@ Bot to arenamody.pl which automates boring activities such as
  - **fighting**
  ## How to use
 To use, open **config.py**, type your username, password etc.
-Then uncomment one of the methods below.  
+Then uncomment one of the methods below.
 Note that if you want to use bot to fighting, you need to use **findEnemies()** method first
 ## Overview of methods
 **gather_emeralds()** - Bot will gather emeralds.
@@ -26,7 +26,7 @@ Then it will add them to **enemies_list** if your character can defeat it, or to
 **Controler.py** - file with class responsible for giving methods that are enough to put bot to working.
 **config.py** - File to control work of bot.
 ## How does choosing enemies work
-**level_treshold** is a variable that if you are better than your enemy in every skill, and
+**level_treshold** is a variable that if you are better than your enemy in every skill, and  
 **enemy_level + level_treshold > my_level > enemy_level**.
 Then enemy will land in enemy_list.
 Then, after fighting, money that you have acquired and time when you fought will be **saved**.
