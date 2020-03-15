@@ -1,6 +1,6 @@
 16.02.2020.log 
 .idea
-_pycache_
+__pycache__
 venv
 *enemies.txt
 *enemy_list.txt
